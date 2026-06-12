@@ -1,0 +1,43 @@
+.dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.stat-card .stat-label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.stat-card .stat-value {
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.stat-card.income-stat .stat-value {
+  color: var(--income);
+}
+
+.stat-card.expense-stat .stat-value {
+  color: var(--expense);
+}
+
+.stat-card .stat-value.positive {
+  color: var(--income);
+}
+
+.stat-card .stat-value.negative {
+  color: var(--expense);
+}
+
+@media (max-width: 768px) {
+  .dashboard-stats {
+    grid-template-columns: 1fr;
+  }
+}

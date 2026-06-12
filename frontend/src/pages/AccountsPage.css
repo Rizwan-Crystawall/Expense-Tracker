@@ -1,0 +1,109 @@
+.accounts-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.page-loading {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-muted);
+}
+
+.hero-balance {
+  position: relative;
+  overflow: hidden;
+  padding: 2rem !important;
+  background: linear-gradient(135deg, var(--surface) 0%, #1e2a3d 100%) !important;
+  border-color: rgba(96, 165, 250, 0.2) !important;
+}
+
+.hero-balance-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.hero-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+}
+
+.hero-sub {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.hero-amount {
+  font-size: 2.5rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.hero-amount.positive {
+  color: var(--income);
+}
+
+.hero-amount.negative {
+  color: var(--expense);
+}
+
+.hero-decoration {
+  position: absolute;
+  right: -20px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.hero-ring {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  border: 2px solid rgba(52, 211, 153, 0.15);
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.hero-ring--2 {
+  width: 100px;
+  height: 100px;
+  right: 20px;
+  border-color: rgba(96, 165, 250, 0.2);
+}
+
+.section-header h2 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 0.25rem;
+}
+
+.section-header p {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.accounts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+@media (max-width: 600px) {
+  .hero-amount {
+    font-size: 2rem;
+  }
+
+  .hero-decoration {
+    display: none;
+  }
+}

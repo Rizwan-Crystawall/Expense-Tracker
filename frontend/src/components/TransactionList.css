@@ -1,0 +1,83 @@
+.empty-state {
+  color: var(--text-muted);
+  text-align: center;
+  padding: 2rem 1rem;
+  font-size: 0.95rem;
+}
+
+.txn-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.txn-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.85rem 1rem;
+  border-radius: 8px;
+  background: var(--bg);
+  border-left: 3px solid transparent;
+}
+
+.txn-item.income {
+  border-left-color: var(--income);
+}
+
+.txn-item.expense {
+  border-left-color: var(--expense);
+}
+
+.txn-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.txn-desc {
+  font-weight: 500;
+}
+
+.txn-meta {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.txn-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.txn-amount {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.txn-amount.income {
+  color: var(--income);
+}
+
+.txn-amount.expense {
+  color: var(--expense);
+}
+
+.delete-btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 1.25rem;
+  border-radius: 6px;
+  line-height: 1;
+}
+
+.delete-btn:hover {
+  background: var(--expense-bg);
+  color: var(--expense);
+}

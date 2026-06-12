@@ -1,0 +1,67 @@
+.type-toggle {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.type-toggle button {
+  flex: 1;
+  padding: 0.6rem;
+  background: var(--bg);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+
+.type-toggle button.active.income {
+  background: var(--income-bg);
+  color: var(--income);
+  border-color: var(--income);
+}
+
+.type-toggle button.active.expense {
+  background: var(--expense-bg);
+  color: var(--expense);
+  border-color: var(--expense);
+}
+
+.transaction-form form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.transaction-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.form-error {
+  color: var(--expense);
+  font-size: 0.85rem;
+}
+
+.submit-btn {
+  padding: 0.75rem;
+  background: var(--accent);
+  color: white;
+  font-size: 0.95rem;
+  margin-top: 0.25rem;
+}
+
+.submit-btn:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
