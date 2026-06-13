@@ -31,7 +31,6 @@ Budget.belongsTo(Account, { foreignKey: 'accountId', as: 'account' });
 export async function connectDatabase() {
   await sequelize.authenticate();
   const alter = process.env.DB_ALTER === 'true';
-  await sequelize.sync({ alter });
   console.log(`Sequelize connected to ${sequelize.getDialect()} database`);
   console.log(`Tables synced: ${Object.keys(sequelize.models).join(', ')}`);
 }
