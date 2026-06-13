@@ -1,4 +1,12 @@
-const API = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_BASE = import.meta.env.VITE_API_URL?.replace(/\/$/, '');
+
+if (!API_BASE) {
+  throw new Error('VITE_API_URL is not set in frontend/.env');
+}
+
+function apiUrl(path) {
+  return `${API_BASE}${path.startsWith('/') ? path : `/${path}`}`;
+}
 
 function getToken() {
   return localStorage.getItem('token');
@@ -43,29 +51,29 @@ export function hasToken() {
 }
 
 export async function login(username, password) {
-  return request(`${API}/auth/login`, {
+  return request(apiUrl('/auth/login'), {
     method: 'POST',
     body: JSON.stringify({ username, password }),
   });
 }
 
 export async function register(username, password) {
-  return request(`${API}/auth/register`, {
+  return request(apiUrl('/auth/register'), {
     method: 'POST',
     body: JSON.stringify({ username, password }),
   });
 }
 
 export async function fetchMe() {
-  return request(`${API}/auth/me`);
+  return request(apiUrl('/auth/me'));
 }
 
 export async function fetchAccounts() {
-  return request(`${API}/accounts`);
+  return request(apiUrl('/accounts'));
 }
 
 export async function fetchAccount(accountId) {
-  return request(`${API}/accounts/${accountId}`);
+  return request(apiUrl(`/accounts/${accountId}`));
 }
 
 export async function fetchDashboard({ accountId, year, month, months = 6 } = {}) {
@@ -74,67 +82,67 @@ export async function fetchDashboard({ accountId, year, month, months = 6 } = {}
   if (year) params.set('year', year);
   if (month) params.set('month', month);
   if (months) params.set('months', months);
-  return request(`${API}/dashboard?${params}`);
+  return request(apiUrl(`/dashboard?${params}`));
 }
 
 export async function fetchTransactions(accountId) {
-  return request(`${API}/accounts/${accountId}/transactions`);
+  return request(apiUrl(`/accounts/${accountId}/transactions`));
 }
 
 export async function fetchAccountActivity(accountId) {
-  return request(`${API}/accounts/${accountId}/activity`);
+  return request(apiUrl(`/accounts/${accountId}/activity`));
 }
 
 export async function createTransfer(data) {
-  return request(`${API}/transfers`, {
+  return request(apiUrl('/transfers'), {
     method: 'POST',
     body: JSON.stringify(data),
   });
 }
 
 export async function deleteTransfer(id) {
-  return request(`${API}/transfers/${id}`, { method: 'DELETE' });
+  return request(apiUrl(`/transfers/${id}`), { method: 'DELETE' });
 }
 
 export async function fetchBudgets({ accountId, year, month }) {
   const params = new URLSearchParams({ accountId });
   if (year) params.set('year', year);
   if (month) params.set('month', month);
-  return request(`${API}/budgets?${params}`);
+  return request(apiUrl(`/budgets?${params}`));
 }
 
 export async function createBudget(data) {
-  return request(`${API}/budgets`, {
+  return request(apiUrl('/budgets'), {
     method: 'POST',
     body: JSON.stringify(data),
   });
 }
 
 export async function updateBudget(id, data) {
-  return request(`${API}/budgets/${id}`, {
+  return request(apiUrl(`/budgets/${id}`), {
     method: 'PUT',
     body: JSON.stringify(data),
   });
 }
 
 export async function deleteBudget(id) {
-  return request(`${API}/budgets/${id}`, { method: 'DELETE' });
+  return request(apiUrl(`/budgets/${id}`), { method: 'DELETE' });
 }
 
 export async function addTransaction(accountId, data) {
-  return request(`${API}/accounts/${accountId}/transactions`, {
+  return request(apiUrl(`/accounts/${accountId}/transactions`), {
     method: 'POST',
     body: JSON.stringify(data),
   });
 }
 
 export async function updateTransaction(id, data) {
-  return request(`${API}/transactions/${id}`, {
+  return request(apiUrl(`/transactions/${id}`), {
     method: 'PUT',
     body: JSON.stringify(data),
   });
 }
 
 export async function deleteTransaction(id) {
-  return request(`${API}/transactions/${id}`, { method: 'DELETE' });
+  return request(apiUrl(`/transactions/${id}`), { method: 'DELETE' });
 }
