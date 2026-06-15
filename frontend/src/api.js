@@ -1,4 +1,16 @@
-const API_BASE = import.meta.env.VITE_API_URL?.replace(/\/$/, '');
+function normalizeApiBase(url) {
+  const trimmed = url?.trim().replace(/\/$/, '');
+  if (!trimmed) return '';
+
+  // Must be absolute — otherwise browser appends to frontend URL (e.g. :8081/43.204...)
+  if (/^https?:\/\//i.test(trimmed)) {
+    return trimmed;
+  }
+
+  return `http://${trimmed}`;
+}
+
+const API_BASE = normalizeApiBase(import.meta.env.VITE_API_URL);
 
 if (!API_BASE) {
   throw new Error('VITE_API_URL is not set in frontend/.env');
