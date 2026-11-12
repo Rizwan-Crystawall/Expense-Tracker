@@ -1,0 +1,507 @@
+# AWS Lightsail Deployment -- Complete Command Notes
+
+## Deployment architecture
+
+``` text
+Browser
+http://13.232.198.72/
+        |
+        v
+Nginx – Port 80
+Serves React frontend and proxies /api
+        |
+        +----------------------+
+        |                      |
+        v                      v
+React + Vite              Node.js + Express
+Static files:             API port: 5000
+/var/www/expense-tracker       |
+                               v
+                         PostgreSQL
+                         Port: 5432
+                         Database: expensetracker
+```
+
+## 1. Technologies and tools used
+
+  Technology      Purpose
+  --------------- -----------------------------------------------------------
+  AWS Lightsail   Cloud virtual server
+  Ubuntu          Server operating system
+  SSH             Remote server connection
+  Node.js         Backend runtime
+  npm             Package management
+  React + Vite    Frontend
+  Express.js      REST API
+  PostgreSQL      Database
+  Sequelize       ORM and table creation
+  Nginx           Web server and reverse proxy
+  systemd         Backend service management (planned; setup not confirmed)
+
+## 2. Connect to AWS Lightsail
+
+**Run in Windows PowerShell:**
+
+``` powershell
+ssh -i "$env:USERPROFILE\Downloads\LightsailDefaultKey-ap-south-1.pem" ubuntu@13.232.198.72
+```
+
+## 3. Update Ubuntu and install packages
+
+**Run in the Ubuntu SSH terminal:**
+
+``` bash
+sudo apt update
+sudo apt upgrade -y
+```
+
+Install Nginx:
+
+``` bash
+sudo apt install nginx -y
+```
+
+Install PostgreSQL:
+
+``` bash
+sudo apt install postgresql postgresql-contrib -y
+```
+
+Check versions:
+
+``` bash
+node -v
+npm -v
+nginx -v
+psql --version
+```
+
+## 4. Upload project without Git
+
+The project was uploaded directly as an archive, without Git.
+
+Archive name:
+
+``` text
+expense-tracker.tar.gz
+```
+
+Create the project directory and extract the archive:
+
+``` bash
+mkdir -p ~/app
+tar -xzf ~/expense-tracker.tar.gz -C ~/app
+```
+
+Check the folders:
+
+``` bash
+ls -la ~/app
+```
+
+Expected project structure:
+
+``` text
+/home/ubuntu/app/
+├── Backend/
+└── frontend/
+```
+
+## 5. Backend deployment
+
+Go to the backend directory:
+
+``` bash
+cd ~/app/Backend
+```
+
+Install dependencies:
+
+``` bash
+npm install
+```
+
+Create/edit the environment file:
+
+``` bash
+nano .env
+```
+
+Backend `.env` configuration (use your own private values):
+
+``` env
+PORT=5000
+DB_DIALECT=postgres
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=expensetracker
+DB_USER=appuser
+DB_PASSWORD=YOUR_DB_PASSWORD
+DB_LOGGING=false
+DB_ALTER=false
+JWT_SECRET=YOUR_SECRET
+REDIS_ENABLED=false
+```
+
+Save and exit nano with `Ctrl+O`, Enter, then `Ctrl+X`.
+
+Secure the environment file:
+
+``` bash
+chmod 600 .env
+```
+
+Start the backend for testing:
+
+``` bash
+npm start
+```
+
+Keep this terminal open while running it manually. Stop it with
+`Ctrl+C`.
+
+## 6. PostgreSQL database setup
+
+Start PostgreSQL and enable it at boot:
+
+``` bash
+sudo systemctl start postgresql
+sudo systemctl enable postgresql
+```
+
+Open the PostgreSQL shell:
+
+``` bash
+sudo -u postgres psql
+```
+
+Run these SQL commands inside `psql`:
+
+``` sql
+CREATE DATABASE expensetracker;
+CREATE USER appuser WITH PASSWORD 'YOUR_DB_PASSWORD';
+GRANT ALL PRIVILEGES ON DATABASE expensetracker TO appuser;
+```
+
+Exit PostgreSQL:
+
+``` sql
+\q
+```
+
+Connect to the application database:
+
+``` bash
+sudo -u postgres psql -d expensetracker
+```
+
+List tables:
+
+``` sql
+\dt
+```
+
+The deployed database contains these five tables:
+
+-   users
+-   accounts
+-   transactions
+-   transfers
+-   budgets
+
+**Note:** If the database or user already exists, do not run the
+corresponding `CREATE` command again. Do not share database passwords in
+chat or commit them to source control.
+
+## 7. Sequelize database synchronization
+
+From the backend directory:
+
+``` bash
+cd ~/app/Backend
+npm run db:sync
+```
+
+The sync script should call:
+
+``` javascript
+await sequelize.sync();
+```
+
+Check the tables:
+
+``` bash
+sudo -u postgres psql -d expensetracker -c '\dt'
+```
+
+## 8. Frontend deployment
+
+Go to the frontend directory:
+
+``` bash
+cd ~/app/frontend
+```
+
+Install dependencies:
+
+``` bash
+npm install
+```
+
+Create/edit the frontend environment file:
+
+``` bash
+nano .env
+```
+
+Frontend API configuration:
+
+``` env
+VITE_API_URL=/api
+```
+
+Build the production frontend:
+
+``` bash
+npm run build
+```
+
+Vite generates production files in:
+
+``` text
+/home/ubuntu/app/frontend/dist
+```
+
+Create the Nginx web directory:
+
+``` bash
+sudo mkdir -p /var/www/expense-tracker
+```
+
+Copy the build files:
+
+``` bash
+sudo cp -a dist/. /var/www/expense-tracker/
+```
+
+Set ownership:
+
+``` bash
+sudo chown -R www-data:www-data /var/www/expense-tracker
+```
+
+## 9. Nginx configuration
+
+Open the default Nginx site configuration:
+
+``` bash
+sudo nano /etc/nginx/sites-available/default
+```
+
+Configuration used:
+
+``` nginx
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+
+    server_name _;
+
+    root /var/www/expense-tracker;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    location /api/ {
+        proxy_pass http://127.0.0.1:5000;
+        proxy_http_version 1.1;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+Test the Nginx configuration:
+
+``` bash
+sudo nginx -t
+```
+
+Reload Nginx:
+
+``` bash
+sudo systemctl reload nginx
+```
+
+Enable Nginx at boot:
+
+``` bash
+sudo systemctl enable nginx
+```
+
+## 10. Check running services and website
+
+Check Nginx:
+
+``` bash
+sudo systemctl status nginx
+```
+
+Check PostgreSQL:
+
+``` bash
+sudo systemctl status postgresql
+```
+
+Check port 80:
+
+``` bash
+sudo ss -ltnp | grep ':80'
+```
+
+Check backend port 5000:
+
+``` bash
+sudo ss -ltnp | grep ':5000'
+```
+
+Test the website from the server:
+
+``` bash
+curl -I http://localhost
+```
+
+Test using the public IP from the server:
+
+``` bash
+curl -I http://13.232.198.72
+```
+
+## 11. AWS Lightsail firewall
+
+In AWS Lightsail → Instance → Networking, configure:
+
+  Port   Protocol   Purpose
+  ------ ---------- ----------------------------------
+  22     TCP        SSH
+  80     TCP        HTTP website
+  443    TCP        HTTPS, after HTTPS is configured
+
+**Security:** Do not expose PostgreSQL port 5432 publicly. The backend
+connects to PostgreSQL through localhost.
+
+## 12. Commands for future updates
+
+### Backend update
+
+``` bash
+cd ~/app/Backend
+npm install
+```
+
+If the backend systemd service has been created and enabled, restart it:
+
+``` bash
+sudo systemctl restart expense-tracker-backend
+```
+
+View backend service logs:
+
+``` bash
+sudo journalctl -u expense-tracker-backend -f
+```
+
+**Important:** The systemd service setup was discussed but its creation
+was not confirmed. Until it is configured, the backend may be running
+manually with `npm start` and may stop when its terminal/session ends.
+Check with:
+
+``` bash
+sudo systemctl status expense-tracker-backend
+```
+
+### Frontend update
+
+``` bash
+cd ~/app/frontend
+npm install
+npm run build
+sudo cp -a dist/. /var/www/expense-tracker/
+sudo chown -R www-data:www-data /var/www/expense-tracker
+sudo systemctl reload nginx
+```
+
+## 13. Troubleshooting commands
+
+  ----------------------------------------------------------------------------------------
+  Problem                             Command
+  ----------------------------------- ----------------------------------------------------
+  Check backend port                  `sudo ss -ltnp \| grep ':5000'`
+
+  Check Nginx errors                  `sudo tail -f /var/log/nginx/error.log`
+
+  Check Nginx access log              `sudo tail -f /var/log/nginx/access.log`
+
+  Check backend service               `sudo systemctl status expense-tracker-backend`
+
+  Check PostgreSQL                    `sudo systemctl status postgresql`
+
+  Restart Nginx                       `sudo systemctl restart nginx`
+
+  Restart PostgreSQL                  `sudo systemctl restart postgresql`
+
+  Check database tables               `sudo -u postgres psql -d expensetracker -c '\dt'`
+
+  Check disk space                    `df -h`
+
+  Check memory                        `free -h`
+  ----------------------------------------------------------------------------------------
+
+## 14. Final deployment details
+
+  Component           Configuration
+  ------------------- -----------------------
+  Cloud               AWS Lightsail
+  Operating system    Ubuntu
+  Public IP           `13.232.198.72`
+  Frontend            React + Vite
+  Backend             Node.js + Express
+  Backend port        `5000`
+  Database            PostgreSQL
+  Database name       `expensetracker`
+  Web server          Nginx
+  HTTP port           `80`
+  API prefix          `/api`
+  Deployment method   Direct upload; no Git
+
+Live website:
+
+http://13.232.198.72/
+
+## 15. What this deployment taught you
+
+1.  Creating an AWS Lightsail Ubuntu server.
+2.  Connecting to a remote server using SSH.
+3.  Installing Node.js, Nginx and PostgreSQL.
+4.  Uploading project files without Git.
+5.  Configuring backend environment variables.
+6.  Creating a PostgreSQL database and user.
+7.  Synchronizing Sequelize models into database tables.
+8.  Building a React production application.
+9.  Configuring Nginx as a reverse proxy.
+10. Connecting frontend API requests to the backend.
+11. Testing deployment using `curl`, `ss` and `systemctl`.
+12. Deploying a full-stack application on a cloud server.
+
+## Recommended next DevOps tasks
+
+-   Configure the Node.js backend as a `systemd` service so it starts
+    automatically after a reboot.
+-   Connect a domain name to the Lightsail instance.
+-   Configure HTTPS using Let's Encrypt.
+-   Set up regular PostgreSQL backups.

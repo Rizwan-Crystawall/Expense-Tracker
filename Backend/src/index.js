@@ -1,3 +1,4 @@
+
 import express from 'express';
 import cors from 'cors';
 import { connectDatabase } from './models/index.js';
@@ -15,6 +16,15 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+// Root route
+app.get('/', (_req, res) => {
+  res.json({
+    status: 'success',
+    message: 'Expense Tracker Backend is running!'
+  });
+});
+
+// Health check route
 app.get('/api/health', async (_req, res) => {
   res.json({
     status: 'ok',
@@ -23,6 +33,7 @@ app.get('/api/health', async (_req, res) => {
   });
 });
 
+// API routes
 app.use('/api/auth', authRouter);
 app.use('/api/accounts', accountsRouter);
 app.use('/api/transactions', transactionsRouter);
@@ -34,6 +45,7 @@ async function startServer() {
   try {
     await connectDatabase();
     await connectRedis();
+
     app.listen(PORT, () => {
       console.log(`Server running on http://localhost:${PORT}`);
     });
